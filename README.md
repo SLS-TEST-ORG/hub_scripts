@@ -70,9 +70,11 @@ blackduck-management/
 │   ├── auth.py
 │   ├── projects.py
 │   └── users.py
-│
-├── inactive_project_versions.py
-└── inactive_user.py
+├── scripts/
+│   ├── inactive_user.py
+│   └── inactive_project_versions.py
+├── README.md
+└── setup.py
 ```
 
 ### `blackduck_utils/auth.py`
