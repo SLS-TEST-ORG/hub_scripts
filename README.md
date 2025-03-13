@@ -100,14 +100,3 @@ Contains functions for managing users:
 ## License
 
 This project is licensed under the MIT License.
-```
-
-### Explanation
-
-1. **Prerequisites**: Lists the required Python version and dependencies.
-2. **Installation**: Provides instructions to clone the repository and install dependencies.
-3. **Usage**: Describes how to use the inactive_project_versions.py and inactive_user.py scripts, including command-line arguments and examples.
-4. **Project Structure**: Explains the structure of the project and the purpose of each file.
-5. **License**: Specifies the license for the project.
-
-This README should help users understand how to set up and use the scripts to manage inactive project versions and users in the Blackduck hub.
