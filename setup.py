@@ -9,16 +9,16 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'inactive_user=blackduck_tools.scripts.inactive_user:main',
-            'inactive_project_versions=blackduck_tools.scripts.inactive_project_versions:main',
+            'inactive_user=hub-scripts.scripts.inactive_user:main',
+            'inactive_project_versions=hub-scripts.scripts.inactive_project_versions:main',
         ],
     },
-    author='Your Name',
-    author_email='your.email@example.com',
+    author='Dylan',
+    author_email='dylanm@blackduck.com,
     description='Tools for managing inactive users and project versions in Blackduck hub',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/yourusername/blackduck_tools',
+    url='https://github.com/dc-moses/hub-scripts',
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
