@@ -6,6 +6,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'requests',
+        'pyyaml',  
     ],
     entry_points={
         'console_scripts': [
@@ -25,4 +26,9 @@ setup(
         'Operating System :: OS Independent',
     ],
     python_requires='>=3.6',
+    keywords='blackduck management inactive users projects',
+    project_urls={
+        'Source': 'https://github.com/dc-moses/hub-scripts',
+        'Tracker': 'https://github.com/dc-moses/hub-scripts/issues',
+    },
 )

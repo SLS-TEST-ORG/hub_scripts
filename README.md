@@ -6,6 +6,7 @@ This repository contains scripts to manage inactive project versions and users i
 
 - Python 3.6 or higher
 - `requests` library
+- `pyyaml` library
 
 ## Installation
 
@@ -19,7 +20,7 @@ This repository contains scripts to manage inactive project versions and users i
 2. Install the required dependencies:
 
    ```sh
-   pip install requests
+   pip install -r requirements.txt
    ```
 
 ## Usage
@@ -57,46 +58,51 @@ The `inactive_user.py` script can be used to manage inactive users.
 #### Example
 
 ```sh
-python inactive_user.py --hub-url <HUB_URL> --access-token <ACCESS_TOKEN> --days-inactive 30
+python inactive_user.py --hub-url <HUB_URL> --access-token <ACCESS_TOKEN> --days-inactive 30 --deactivate
 ```
 
-## Project Structure
+### Configuration File Support
 
-```
-blackduck-management/
-│
-├── blackduck_utils/
-│   ├── __init__.py
-│   ├── auth.py
-│   ├── projects.py
-│   └── users.py
-├── scripts/
-│   ├── inactive_user.py
-│   └── inactive_project_versions.py
-├── README.md
-└── setup.py
+You can also use a configuration file to specify the command-line arguments. Create a `config.yaml` file with the following structure:
+
+```yaml
+hub_url: <HUB_URL>
+access_token: <ACCESS_TOKEN>
+days_inactive: 30
+deactivate: true
+delete: false
 ```
 
-### `blackduck_utils/auth.py`
+Then run the script with the `--config` argument:
 
-Contains the `BearerAuth` class for authenticating with the Blackduck hub.
+```sh
+python inactive_user.py --config config.yaml
+```
 
-### `blackduck_utils/projects.py`
+## Logging
 
-Contains functions for managing project versions:
-- `get_project_versions`
-- `find_inactive_project_versions`
-- `archive_project_version`
-- `delete_project_version`
+The scripts use Python's built-in logging module to log information. By default, the logging level is set to `INFO`. You can change the logging level by modifying the `logging.basicConfig(level=logging.INFO)` line in the script.
 
-### `blackduck_utils/users.py`
+## Testing
 
-Contains functions for managing users:
-- `get_users`
-- `find_inactive_users`
-- `deactivate_user`
-- `delete_user`
+Unit tests are provided in the `tests` directory. To run the tests, use the following command:
+
+```sh
+pytest
+```
+
+## Continuous Integration
+
+This project uses GitHub Actions for continuous integration. The CI configuration is located in the `.github/workflows/ci.yml` file.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request on GitHub.
+
+## Contact
+
+For any questions or issues, please contact Dylan at dylanm@blackduck.com.
