@@ -1,6 +1,7 @@
 import requests
 import logging
 import argparse
+from typing import Any
 from blackduck_utils.auth import BearerAuth
 from blackduck_utils.users import get_users, find_inactive_users, deactivate_user, delete_user
 
@@ -16,11 +17,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--days-inactive', type=int, required=True, help='Number of days to check for inactivity')
     parser.add_argument('--deactivate', action='store_true', help='Deactivate inactive users')
     parser.add_argument('--delete', action='store_true', help='Delete users instead of deactivating them')
-    return parser.parse_args()
+    parser.add_argument('--log-level', type=str, default='INFO', help='Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)')
+    args = parser.parse_args()
 
-def main():
+    if args.deactivate and args.delete:
+        parser.error("Specify either --deactivate or --delete, not both.")
+    
+    return args
+
+def main() -> None:
     """Main function to execute the script."""
     args = parse_args()
+    logging.getLogger().setLevel(args.log_level.upper())
 
     with requests.Session() as session:
         try:

@@ -17,8 +17,8 @@ def get_project_versions(session: requests.Session, auth: AuthBase, hub_url: str
             response = session.get(url, auth=auth, params=params)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logger.error("Invalid URL or network issue.")
-            raise RuntimeError("Invalid URL or network issue.") from e
+            logger.error(f"Failed to fetch project versions: {e}")
+            raise RuntimeError("Failed to fetch project versions.") from e
 
         if response.status_code == 401:
             logger.error("Unauthorized access - check your API token and URL.")
@@ -49,8 +49,8 @@ def get_versions_for_project(session: requests.Session, auth: AuthBase, project_
             response = session.get(url, auth=auth, params=params)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logger.error("Invalid URL or network issue.")
-            raise RuntimeError("Invalid URL or network issue.") from e
+            logger.error(f"Failed to fetch versions for project {project_name}: {e}")
+            raise RuntimeError(f"Failed to fetch versions for project {project_name}.") from e
 
         if response.status_code == 401:
             logger.error("Unauthorized access - check your API token and URL.")
@@ -83,20 +83,22 @@ def find_inactive_project_versions(versions: List[Dict[str, Any]], days_inactive
             inactive_versions.append(version)  # Versions that never had a scan
     return inactive_versions
 
-def archive_project_version(session: requests.Session, auth: AuthBase, version: Dict[str, Any], hub_url: str):
+def archive_project_version(session: requests.Session, auth: AuthBase, version: Dict[str, Any], hub_url: str) -> None:
     """Archive a project version."""
     url = f"{hub_url}/api/projects/{version['projectId']}/versions/{version['versionId']}/archive"
-    response = session.post(url, auth=auth)
-    if response.status_code == 204:
+    try:
+        response = session.post(url, auth=auth)
+        response.raise_for_status()
         logger.info(f"Project version {version['versionName']} archived successfully.")
-    else:
-        logger.error(f"Failed to archive project version {version['versionName']}. Status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to archive project version {version['versionName']}: {e}")
 
-def delete_project_version(session: requests.Session, auth: AuthBase, version: Dict[str, Any], hub_url: str):
+def delete_project_version(session: requests.Session, auth: AuthBase, version: Dict[str, Any], hub_url: str) -> None:
     """Delete a project version."""
     url = f"{hub_url}/api/projects/{version['projectId']}/versions/{version['versionId']}"
-    response = session.delete(url, auth=auth)
-    if response.status_code == 204:
+    try:
+        response = session.delete(url, auth=auth)
+        response.raise_for_status()
         logger.info(f"Project version {version['versionName']} deleted successfully.")
-    else:
-        logger.error(f"Failed to delete project version {version['versionName']}. Status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to delete project version {version['versionName']}: {e}")

@@ -17,8 +17,8 @@ def get_users(session: requests.Session, auth: AuthBase, hub_url: str) -> List[D
             response = session.get(url, auth=auth, params=params)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logger.error("Invalid URL or network issue.")
-            raise RuntimeError("Invalid URL or network issue.") from e
+            logger.error(f"Failed to fetch users: {e}")
+            raise RuntimeError("Failed to fetch users.") from e
 
         if response.status_code == 401:
             logger.error("Unauthorized access - check your API token and URL.")
@@ -49,20 +49,22 @@ def find_inactive_users(users: List[Dict[str, Any]], days_inactive: int) -> List
             inactive_users.append(user)  # Users who never logged in
     return inactive_users
 
-def deactivate_user(session: requests.Session, auth: AuthBase, user: Dict[str, Any], hub_url: str):
+def deactivate_user(session: requests.Session, auth: AuthBase, user: Dict[str, Any], hub_url: str) -> None:
     """Deactivate a user."""
     url = f"{hub_url}/api/users/{user['userName']}/deactivate"
-    response = session.post(url, auth=auth)
-    if response.status_code == 204:
+    try:
+        response = session.post(url, auth=auth)
+        response.raise_for_status()
         logger.info(f"User {user['userName']} deactivated successfully.")
-    else:
-        logger.error(f"Failed to deactivate user {user['userName']}. Status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to deactivate user {user['userName']}: {e}")
 
-def delete_user(session: requests.Session, auth: AuthBase, user: Dict[str, Any], hub_url: str):
+def delete_user(session: requests.Session, auth: AuthBase, user: Dict[str, Any], hub_url: str) -> None:
     """Delete a user."""
     url = f"{hub_url}/api/users/{user['userName']}"
-    response = session.delete(url, auth=auth)
-    if response.status_code == 204:
+    try:
+        response = session.delete(url, auth=auth)
+        response.raise_for_status()
         logger.info(f"User {user['userName']} deleted successfully.")
-    else:
-        logger.error(f"Failed to delete user {user['userName']}. Status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to delete user {user['userName']}: {e}")
