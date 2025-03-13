@@ -1,7 +1,7 @@
 import pytest
 import requests
-from blackduck_utils.users import get_users, find_inactive_users
 from datetime import datetime, timedelta
+from blackduck_utils.users import get_users, find_inactive_users
 
 @pytest.fixture
 def mock_session(mocker):

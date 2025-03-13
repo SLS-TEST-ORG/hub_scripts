@@ -1,7 +1,6 @@
 import requests
 import logging
 from typing import List, Dict, Any
-from datetime import datetime, timedelta
 from blackduck_utils.auth import AuthBase
 
 logger = logging.getLogger(__name__)
