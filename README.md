@@ -58,7 +58,7 @@ The script uses Python's built-in logging module to log information and errors. 
 
 ## License
 
-This project is licensed under the MIT License.The MIT License is a popular open-source license that is simple and permissive. It allows others to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, provided that the original copyright notice and permission notice are included in all copies or substantial portions of the software.
+This project is licensed under the MIT License. The MIT License is a popular open-source license that is simple and permissive. It allows others to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, provided that the original copyright notice and permission notice are included in all copies or substantial portions of the software.
 
 Here are some reasons why you might choose the MIT License for your project:
 
