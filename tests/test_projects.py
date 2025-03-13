@@ -27,7 +27,7 @@ def test_get_project_versions(mock_session, mocker):
         # Third call to get versions for project2
         mocker.Mock(status_code=200, json=lambda: {
             'items': [
-                {'versionName': 'v2', 'lastScanDate': '2023-01-01T00:00:00.000Z'}
+                {'versionName': 'v2', 'lastScanDate': (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%S.%fZ')}
             ]
         })
     ]
@@ -41,7 +41,7 @@ def test_get_project_versions(mock_session, mocker):
 def test_find_inactive_project_versions():
     versions = [
         {'versionName': 'v1', 'lastScanDate': '2022-01-01T00:00:00.000Z'},
-        {'versionName': 'v2', 'lastScanDate': '2023-01-01T00:00:00.000Z'}
+        {'versionName': 'v2', 'lastScanDate': (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%S.%fZ')}
     ]
     days_inactive = 365
     inactive_versions = find_inactive_project_versions(versions, days_inactive)

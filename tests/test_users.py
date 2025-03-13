@@ -13,7 +13,7 @@ def test_get_users(mock_session, mocker):
     mock_session.get.return_value.json.return_value = {
         'items': [
             {'userName': 'user1', 'lastLogin': '2022-01-01T00:00:00.000Z'},
-            {'userName': 'user2', 'lastLogin': '2023-01-01T00:00:00.000Z'}
+            {'userName': 'user2', 'lastLogin': (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%S.%fZ')}
         ]
     }
     mock_session.get.return_value.status_code = 200
@@ -25,7 +25,7 @@ def test_get_users(mock_session, mocker):
 def test_find_inactive_users():
     users = [
         {'userName': 'user1', 'lastLogin': '2022-01-01T00:00:00.000Z'},
-        {'userName': 'user2', 'lastLogin': '2023-01-01T00:00:00.000Z'}
+        {'userName': 'user2', 'lastLogin': (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%S.%fZ')}
     ]
     days_inactive = 365
     inactive_users = find_inactive_users(users, days_inactive)
