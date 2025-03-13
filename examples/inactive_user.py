@@ -53,11 +53,16 @@ class BearerAuth(AuthBase):
             requests.packages.urllib3.disable_warnings()
             logger.warning("SSL verification disabled, connection insecure. Do verify=False in production!")
 
-        response = self.session.post(
-            url=f"{self.hub_url}/api/tokens/authenticate",
-            auth=NoAuth(),
-            headers={"Authorization": f"token {self.access_token}"}
-        )
+        try:
+            response = self.session.post(
+                url=f"{self.hub_url}/api/tokens/authenticate",
+                auth=NoAuth(),
+                headers={"Authorization": f"token {self.access_token}"}
+            )
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error("Invalid URL or network issue.")
+            raise RuntimeError("Invalid URL or network issue.") from e
 
         if response.status_code == 200:
             try:
@@ -66,11 +71,11 @@ class BearerAuth(AuthBase):
                 self.csrf_token = response.headers['X-CSRF-TOKEN']
                 self.valid_until = datetime.now() + timedelta(milliseconds=int(content['expiresInMilliseconds']))
                 logger.info(f"Success: Auth granted until {self.valid_until.astimezone()}")
-                return
             except (json.JSONDecodeError, KeyError):
                 logger.exception("HTTP response status code 200 but unable to obtain bearer token")
+                raise RuntimeError("Failed to parse authentication response")
 
-        if response.status_code == 401:
+        elif response.status_code == 401:
             logger.error("HTTP response status code = 401 (Unauthorized)")
             try:
                 logger.error(response.json()['errorMessage'])
@@ -80,20 +85,41 @@ class BearerAuth(AuthBase):
                 logger.error("HTTP response text: %s", response.text)
             raise RuntimeError("Unauthorized access token", response)
 
-        logger.error("Unhandled HTTP response")
-        logger.error("HTTP response status code %i", response.status_code)
-        logger.error("HTTP response headers: %s", response.headers)
-        logger.error("HTTP response text: %s", response.text)
-        raise RuntimeError("Unhandled HTTP response", response)
+        else:
+            logger.error("Unhandled HTTP response")
+            logger.error("HTTP response status code %i", response.status_code)
+            logger.error("HTTP response headers: %s", response.headers)
+            logger.error("HTTP response text: %s", response.text)
+            raise RuntimeError("Unhandled HTTP response", response)
 
 def get_users(session: requests.Session, auth: AuthBase, hub_url: str) -> List[Dict[str, Any]]:
-    """Fetch users from the Blackduck hub."""
-    response = session.get(f"{hub_url}/api/users", auth=auth)
-    if response.status_code == 401:
-        logger.error("Unauthorized access - check your API token and URL.")
-        return []
-    response.raise_for_status()
-    return response.json().get('items', [])
+    """Fetch users from the Blackduck hub, handling pagination."""
+    users = []
+    url = f"{hub_url}/api/users"
+    params = {'offset': 0, 'limit': 100}  # Adjust limit as needed
+
+    while True:
+        try:
+            response = session.get(url, auth=auth, params=params)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error("Invalid URL or network issue.")
+            raise RuntimeError("Invalid URL or network issue.") from e
+
+        if response.status_code == 401:
+            logger.error("Unauthorized access - check your API token and URL.")
+            break
+
+        data = response.json()
+        items = data.get('items', [])
+        users.extend(items)
+
+        if len(items) < params['limit']:
+            break  # No more pages
+
+        params['offset'] += params['limit']
+
+    return users
 
 def find_inactive_users(users: List[Dict[str, Any]], days_inactive: int) -> List[Dict[str, Any]]:
     """Find users who have been inactive for a specified number of days."""
@@ -150,6 +176,8 @@ def main():
                         delete_user(session, auth, user, args.hub_url)
                     elif args.deactivate:
                         deactivate_user(session, auth, user, args.hub_url)
+        except RuntimeError as e:
+            logger.error(e)
         except Exception as e:
             logger.exception("An error occurred during execution")
 
