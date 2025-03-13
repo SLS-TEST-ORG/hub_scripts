@@ -65,4 +65,3 @@ The script uses Python's built-in logging module to log information and errors. 
 ## License
 
 This project is licensed under the MIT License.
-```
