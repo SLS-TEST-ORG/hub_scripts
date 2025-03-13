@@ -9,7 +9,7 @@ def mock_session(mocker):
     mocker.patch.object(session, 'get')
     return session
 
-def test_get_users(mock_session):
+def test_get_users(mock_session, mocker):
     mock_session.get.return_value.json.return_value = {
         'items': [
             {'userName': 'user1', 'lastLogin': '2022-01-01T00:00:00.000Z'},

@@ -9,7 +9,7 @@ def mock_session(mocker):
     mocker.patch.object(session, 'get')
     return session
 
-def test_get_project_versions(mock_session):
+def test_get_project_versions(mock_session, mocker):
     mock_session.get.side_effect = [
         # First call to get projects
         mocker.Mock(status_code=200, json=lambda: {
@@ -44,7 +44,6 @@ def test_find_inactive_project_versions():
         {'versionName': 'v2', 'lastScanDate': '2023-01-01T00:00:00.000Z'}
     ]
     days_inactive = 365
-    cutoff_date = datetime.now() - timedelta(days=days_inactive)
     inactive_versions = find_inactive_project_versions(versions, days_inactive)
     assert len(inactive_versions) == 1
     assert inactive_versions[0]['versionName'] == 'v1'
