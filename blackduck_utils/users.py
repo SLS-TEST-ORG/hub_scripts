@@ -45,8 +45,6 @@ def find_inactive_users(users: List[Dict[str, Any]], days_inactive: int) -> List
             last_login_date = datetime.strptime(last_login, '%Y-%m-%dT%H:%M:%S.%fZ')
             if last_login_date < cutoff_date:
                 inactive_users.append(user)
-        else:
-            inactive_users.append(user)  # Users who never logged in
     return inactive_users
 
 def deactivate_user(session: requests.Session, auth: AuthBase, user: Dict[str, Any], hub_url: str) -> None:

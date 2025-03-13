@@ -79,8 +79,6 @@ def find_inactive_project_versions(versions: List[Dict[str, Any]], days_inactive
             last_scan_date = datetime.strptime(last_scan, '%Y-%m-%dT%H:%M:%S.%fZ')
             if last_scan_date < cutoff_date:
                 inactive_versions.append(version)
-        else:
-            inactive_versions.append(version)  # Versions that never had a scan
     return inactive_versions
 
 def archive_project_version(session: requests.Session, auth: AuthBase, version: Dict[str, Any], hub_url: str) -> None:
