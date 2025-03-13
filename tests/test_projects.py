@@ -1,6 +1,7 @@
 import pytest
 import requests
 from blackduck_utils.projects import get_project_versions, find_inactive_project_versions
+from datetime import datetime, timedelta
 
 @pytest.fixture
 def mock_session(mocker):
@@ -27,6 +28,7 @@ def test_find_inactive_project_versions():
         {'versionName': 'v2', 'lastScanDate': '2023-01-01T00:00:00.000Z'}
     ]
     days_inactive = 365
+    cutoff_date = datetime.now() - timedelta(days=days_inactive)
     inactive_versions = find_inactive_project_versions(versions, days_inactive)
     assert len(inactive_versions) == 1
     assert inactive_versions[0]['versionName'] == 'v1'

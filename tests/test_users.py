@@ -1,6 +1,7 @@
 import pytest
 import requests
 from blackduck_utils.users import get_users, find_inactive_users
+from datetime import datetime, timedelta
 
 @pytest.fixture
 def mock_session(mocker):
@@ -27,6 +28,7 @@ def test_find_inactive_users():
         {'userName': 'user2', 'lastLogin': '2023-01-01T00:00:00.000Z'}
     ]
     days_inactive = 365
+    cutoff_date = datetime.now() - timedelta(days=days_inactive)
     inactive_users = find_inactive_users(users, days_inactive)
     assert len(inactive_users) == 1
     assert inactive_users[0]['userName'] == 'user1'
