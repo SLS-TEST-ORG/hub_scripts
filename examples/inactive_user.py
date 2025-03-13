@@ -2,33 +2,21 @@ import requests
 from requests.auth import AuthBase
 import logging
 from datetime import datetime, timedelta
-import os
-import json
-from typing import List, Dict, Any
 import argparse
+from typing import List, Dict, Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Constants for API endpoints
-HUB_URL = os.getenv('HUB_URL')
-ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
-
-if not HUB_URL or not ACCESS_TOKEN:
-    logger.error("HUB_URL and ACCESS_TOKEN environment variables must be set.")
-    exit(1)
-
-USERS_API_URL = f"{HUB_URL}/api/users"
-AUTH_API_URL = f"{HUB_URL}/api/tokens/authenticate"
-
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Deactivate or delete inactive users from Blackduck hub.")
-    parser.add_argument('--days-inactive', type=int, default=180, help='Number of days to check for inactivity')
-    parser.add_argument('--clean-up', action='store_true', help='Deactivate or delete inactive users')
+    parser.add_argument('--hub-url', type=str, required=True, help='Blackduck hub URL')
+    parser.add_argument('--access-token', type=str, required=True, help='Access token for authentication')
+    parser.add_argument('--days-inactive', type=int, required=True, help='Number of days to check for inactivity')
+    parser.add_argument('--deactivate', action='store_true', help='Deactivate inactive users')
     parser.add_argument('--delete', action='store_true', help='Delete users instead of deactivating them')
-    parser.add_argument('--no-clean-up', action='store_true', help='Do not perform any cleanup')
     return parser.parse_args()
 
 class NoAuth(AuthBase):
@@ -38,12 +26,13 @@ class NoAuth(AuthBase):
 class BearerAuth(AuthBase):
     """Authenticate with Blackduck hub using access token"""
 
-    def __init__(self, session: requests.Session, token: str):
-        if not session or not token:
-            raise ValueError('session & token are required')
+    def __init__(self, session: requests.Session, token: str, hub_url: str):
+        if not session or not token or not hub_url:
+            raise ValueError('session, token, and hub_url are required')
 
         self.session = session
         self.access_token = token
+        self.hub_url = hub_url
         self.bearer_token = None
         self.csrf_token = None
         self.valid_until = datetime.now()
@@ -65,7 +54,7 @@ class BearerAuth(AuthBase):
             logger.warning("SSL verification disabled, connection insecure. Do verify=False in production!")
 
         response = self.session.post(
-            url=AUTH_API_URL,
+            url=f"{self.hub_url}/api/tokens/authenticate",
             auth=NoAuth(),
             headers={"Authorization": f"token {self.access_token}"}
         )
@@ -97,9 +86,9 @@ class BearerAuth(AuthBase):
         logger.error("HTTP response text: %s", response.text)
         raise RuntimeError("Unhandled HTTP response", response)
 
-def get_users(session: requests.Session, auth: AuthBase) -> List[Dict[str, Any]]:
+def get_users(session: requests.Session, auth: AuthBase, hub_url: str) -> List[Dict[str, Any]]:
     """Fetch users from the Blackduck hub."""
-    response = session.get(USERS_API_URL, auth=auth)
+    response = session.get(f"{hub_url}/api/users", auth=auth)
     if response.status_code == 401:
         logger.error("Unauthorized access - check your API token and URL.")
         return []
@@ -120,18 +109,18 @@ def find_inactive_users(users: List[Dict[str, Any]], days_inactive: int) -> List
             inactive_users.append(user)  # Users who never logged in
     return inactive_users
 
-def deactivate_user(session: requests.Session, auth: AuthBase, user: Dict[str, Any]):
+def deactivate_user(session: requests.Session, auth: AuthBase, user: Dict[str, Any], hub_url: str):
     """Deactivate a user."""
-    url = f"{USERS_API_URL}/{user['userName']}/deactivate"
+    url = f"{hub_url}/api/users/{user['userName']}/deactivate"
     response = session.post(url, auth=auth)
     if response.status_code == 204:
         logger.info(f"User {user['userName']} deactivated successfully.")
     else:
         logger.error(f"Failed to deactivate user {user['userName']}. Status code: {response.status_code}")
 
-def delete_user(session: requests.Session, auth: AuthBase, user: Dict[str, Any]):
+def delete_user(session: requests.Session, auth: AuthBase, user: Dict[str, Any], hub_url: str):
     """Delete a user."""
-    url = f"{USERS_API_URL}/{user['userName']}"
+    url = f"{hub_url}/api/users/{user['userName']}"
     response = session.delete(url, auth=auth)
     if response.status_code == 204:
         logger.info(f"User {user['userName']} deleted successfully.")
@@ -141,26 +130,26 @@ def delete_user(session: requests.Session, auth: AuthBase, user: Dict[str, Any])
 def main():
     """Main function to execute the script."""
     args = parse_args()
-    if args.no_clean_up:
-        logger.info("No cleanup will be performed as per the --no-clean-up argument.")
-        return
 
     with requests.Session() as session:
         try:
-            auth = BearerAuth(session, ACCESS_TOKEN)
-            users = get_users(session, auth)
+            auth = BearerAuth(session, args.access_token, args.hub_url)
+            users = get_users(session, auth, args.hub_url)
+            logger.info(f"Total users fetched: {len(users)}")
             if not users:
                 logger.info("No users found or unable to fetch users.")
                 return
             inactive_users = find_inactive_users(users, args.days_inactive)
+            logger.info(f"Total inactive users found: {len(inactive_users)}")
             logger.info(f"Users inactive for more than {args.days_inactive} days:")
             for user in inactive_users:
                 logger.info(f"Username: {user['userName']}, Last Login: {user.get('lastLogin', 'Never')}")
-                if args.clean_up:
+            if args.deactivate or args.delete:
+                for user in inactive_users:
                     if args.delete:
-                        delete_user(session, auth, user)
-                    else:
-                        deactivate_user(session, auth, user)
+                        delete_user(session, auth, user, args.hub_url)
+                    elif args.deactivate:
+                        deactivate_user(session, auth, user, args.hub_url)
         except Exception as e:
             logger.exception("An error occurred during execution")
 
