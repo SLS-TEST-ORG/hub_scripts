@@ -2,6 +2,7 @@ import requests
 from requests.auth import AuthBase
 import logging
 from datetime import datetime, timedelta
+import json  # Add this import
 
 logger = logging.getLogger(__name__)
 

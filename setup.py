@@ -9,12 +9,12 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'inactive_user=hub-scripts.scripts.inactive_user:main',
-            'inactive_project_versions=hub-scripts.scripts.inactive_project_versions:main',
+            'inactive_user=scripts.inactive_user:main',
+            'inactive_project_versions=scripts.inactive_project_versions:main',
         ],
     },
     author='Dylan',
-    author_email='dylanm@blackduck.com,
+    author_email='dylanm@blackduck.com',
     description='Tools for managing inactive users and project versions in Blackduck hub',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
