@@ -45,5 +45,6 @@ def test_find_inactive_project_versions():
     ]
     days_inactive = 365
     inactive_versions = find_inactive_project_versions(versions, days_inactive)
+    print(f"Inactive versions: {inactive_versions}")
     assert len(inactive_versions) == 1
     assert inactive_versions[0]['versionName'] == 'v1'

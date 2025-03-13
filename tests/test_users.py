@@ -29,5 +29,6 @@ def test_find_inactive_users():
     ]
     days_inactive = 365
     inactive_users = find_inactive_users(users, days_inactive)
+    print(f"Inactive users: {inactive_users}")
     assert len(inactive_users) == 1
     assert inactive_users[0]['userName'] == 'user1'
