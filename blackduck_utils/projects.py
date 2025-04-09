@@ -81,15 +81,16 @@ def find_inactive_project_versions(versions: List[Dict[str, Any]], days_inactive
                 inactive_versions.append(version)
     return inactive_versions
 
-def archive_project_version(session: requests.Session, auth: AuthBase, version: Dict[str, Any], hub_url: str) -> None:
+def archive_project_version(session: requests.Session, auth: Any, version: Dict[str, Any], hub_url: str) -> None:
     """Archive a project version."""
     url = f"{hub_url}/api/projects/{version['projectId']}/versions/{version['versionId']}/archive"
     try:
-        response = session.post(url, auth=auth)
+        response = session.post(url, auth=auth, timeout=10)  # Set a timeout of 10 seconds
         response.raise_for_status()
         logger.info(f"Project version {version['versionName']} archived successfully.")
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to archive project version {version['versionName']}: {e}")
+        raise
 
 def delete_project_version(session: requests.Session, auth: AuthBase, version: Dict[str, Any], hub_url: str) -> None:
     """Delete a project version."""
